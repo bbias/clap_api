@@ -1,135 +1,120 @@
 import os
 import numpy as np
-from flask import Flask, flash, request, redirect, url_for, send_from_directory
+from flask import Flask, flash, request, redirect, url_for, send_from_directory, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
-from flask_sqlalchemy import SQLAlchemy
-from embeddings import create_embeddings
+from embeddings import create_embeddings, create_embeddings_from_text
+import time
 
+import werkzeug
 from werkzeug.utils import secure_filename
+from milvus_db import clap_db, snd_info_db, search_milvus_db, insert_items 
 
 ###############################################################################
 
 UPLOAD_FOLDER = 'data/previews'
 ALLOWED_EXTENSIONS = {'ogg'}
+latency_fmt = "latency = {:.4f}s"
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/database.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
+app.config['MAX_CONTENT_LENGTH'] = 16 * 10000 * 10000
 
 api = Api(app)
 
-db = SQLAlchemy(app)
 
 ###############################################################################
-
-class ProductModel(db.Model):
-    id          = db.Column(db.String(36), primary_key=True)
-    name        = db.Column(db.String(100), nullable=False)
-    image_url   = db.Column(db.String(100), nullable=False)
-
-    def __repr__(self):
-        return f"Prduct(id={id}, name = {name}, image_url={image_url})"
-
-class SoundModel(db.Model):
-    id          = db.Column(db.Integer, primary_key=True)
-    uuid        = db.Column(db.String(36), primary_key=True)
-    upid        = db.Column(db.String(36), nullable=False)
-    name        = db.Column(db.String(100), nullable=False)
-    preview     = db.Column(db.String, nullable=True)
-    snd_info    = db.Column(db.String, nullable = False)
-    embeddings  = db.Column(db.Binary)
-
-    def __repr__(self):
-        return f"Sound(id={id}, name = {name}, snd_info={snd_info})"
 
 resource_fields = {
     'id': fields.Integer,
     'uuid' : fields.String,
     'upid' : fields.String,
-    'name' : fields.String,
+    'basename' : fields.String,
     'snd_info' : fields.String,
 }
-
-db.create_all()
 
 ################################
 
 sound_put_args = reqparse.RequestParser()
-sound_put_args.add_argument("name",type=str,help="Name of the sound", required=True)
+sound_put_args.add_argument("basename",type=str,help="Name of the sound", required=True)
 sound_put_args.add_argument("snd_info",type=str,help="Info of the sound", required=True)
 sound_put_args.add_argument("uuid",type=str,help="UUID  of the sound", required=True)
 sound_put_args.add_argument("upid",type=str,help="UPID of the sound", required=True)
 
 sound_update_args = reqparse.RequestParser()
-sound_update_args.add_argument("name",type=str,help="Name of the sound", required=False)
+sound_update_args.add_argument("basename",type=str,help="Name of the sound", required=False)
 sound_update_args.add_argument("snd_info",type=str,help="Views of the sound", required=False)
+
 sound_put_args.add_argument("uuid",type=str,help="UUID  of the sound", required=False)
 sound_put_args.add_argument("upid",type=str,help="UPID of the sound", required=False)
 
-class Sound(Resource):
+################################
 
-    @marshal_with(resource_fields)
-    def get(self, sound_id):
-        result = SoundModel.query.filter_by(id=sound_id).first()
-        if not result:
-            abort(404, message="Could not find sound with id=" + str(sound_id)  )
-        return result
+@app.route('/search_id/<int:sound_id>')
+def search_sound(sound_id):
+
+    sound = clap_db.query(expr=f"pk in [{sound_id}]", limit=1, output_fields=["embeddings"])
+    if not sound:
+        abort(404, message="Could not find sound with id=" + str(sound_id)  )
+
+    # get embeddings
+    vectors_to_search = [sound[0]['embeddings']]
+
+    # search for embeddings
+    result = search_milvus_db(vectors_to_search)[0]
+
+    return jsonify(result)
+
+################################
+
+@app.route('/search_text/<text>')
+def search_text(text):
+
+    print ("search_sound(text) started")
+    print(text)
+    start_time = time.time()
     
-    @marshal_with(resource_fields)
-    def put(self, sound_id):
+    clap_db.load()
+
+    print ([text,text])
 
 
+    # get embeddings
+    vectors_to_search = create_embeddings_from_text([text,text])
 
-        result = SoundModel.query.filter_by(id=sound_id).first()
-        ##if result:
-        ##    abort(409, message="Sound with id=" + str(sound_id) + " already exists.")
+    print(len(vectors_to_search[0]))
 
-        # check if preview exists
+    # search for embeddings
+    result = search_milvus_db(vectors_to_search)[0]
 
+    end_time = time.time()
+    print(latency_fmt.format(end_time - start_time))
+    print ("search_sound(text) done")
+    return jsonify(result)
 
-        # calculate embeddings
-        embeddings = create_embeddings()
-        print(embeddings)
-    
-        # create sound
-        args = sound_put_args.parse_args()
-        sound = SoundModel(id=sound_id, 
-                           name=args['name'], 
-                           snd_info=args['snd_info'], 
-                           uuid = args['uuid'],
-                           upid = args['upid'],
-                           embeddings=np.getbuffer(embeddings))
-        db.session.add(sound)
-        db.session.commit()
+################################
 
-        return sound, 201
+@app.route('/sound_info', methods=['GET', 'POST'])
+def sound_info():
 
-    @marshal_with(resource_fields)
-    def patch(self, sound_id):
-        sound = SoundModel.query.filter_by(id=sound_id).first()
-        if not sound:
-            abort(404, message="Could not find sound with id=" + str(sound_id)  )
-        args = sound_put_args.parse_args()
+    if request.method == 'GET':
+        snd_info_db.load()
 
-        if args['name']:
-            sound.name = args['name']
-        if args['snd_info']:
-            sound.snd_info = args['snd_info']
+        result = snd_info_db.query(expr="uuid != \"\" ", output_fields=["uuid","upid","basename"])
+        return jsonify(result)
 
-        db.session.commit()
-        return sound, 201
+    if request.method == 'POST':
+        data = request.json
 
+        entities = [
+            [data['uuid']],  
+            [data['upid']],  
+            [data['basename']], 
+            [np.random.randn(2)],    # field embeddings, supports numpy.ndarray and list
+        ]
 
-    def delete(self, sound_id):
-        sound = SoundModel.query.filter_by(id=sound_id).first()
-        if not sound:
-            abort(404, message="Could not find sound with id=" + str(sound_id)  )
-        db.session.delete(sound)
-        return '', 204
+        insert_result = snd_info_db.insert(entities)
 
-
-api.add_resource(Sound,"/sounds/<int:sound_id>")
+    return ''
 
 ###############################################################################
 
@@ -149,22 +134,46 @@ def download_file(name):
 @app.route("/upload", methods = ["GET", "POST"])
 def upload_file():
     if request.method == 'POST':
-        
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        print(request.files)
-        file = request.files['file']
-        # If the user does not select a file, the browser submits an
-        # empty file without a filename.
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return '', 201 #redirect(url_for('download_file', name=filename))
+
+        base = []
+        uuids = []
+
+        print ("Uploading started")
+        start_time = time.time()
+
+
+        audio_files = []
+        for key, file in request.files.items() :
+
+            if file and allowed_file(file.filename):
+
+                basename = file.filename[:-4]
+                base.append(basename)
+
+                uuids.append(key)
+
+                # save file    
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                
+                audio_files.append(os.path.join(app.root_path,app.config['UPLOAD_FOLDER'], filename))
+
+        # calc embeddings
+        embeddings = create_embeddings(audio_files)
+
+        end_time = time.time()
+        print(latency_fmt.format(end_time - start_time))
+
+        # add database
+        entities = [
+            uuids,
+            base,
+            embeddings,
+        ]
+        insert_items(entities)
+
+        return '', 201 #redirect(url_for('download_file', name=filename))
+
     return '''
     <!doctype html>
     <title>Upload new File</title>
