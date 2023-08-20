@@ -6,9 +6,39 @@ from functools import partial
 with open('misc/k_content_path.json') as path_file:
   products = json.load(path_file)
 
-def get_preview(snd_info):
+
+def get_preview(snd_info, content_path):
+    
     f = snd_info['file_name']
-    return os.path.dirname(f) + "/.previews/" + os.path.basename(f) + ".ogg"
+    base_path = os.path.dirname(f) 
+    filename  = os.path.basename(f)
+
+    # special handling for reaktor snapshots
+    if (snd_info['file_ext'] == 'ens') or (snd_info['file_ext'] == 'rkplr'):
+      filename += "-" +  snd_info['uuid']
+
+    preview = base_path + "/.previews/" + filename + ".ogg"
+
+    # check if preview exists
+    if os.path.isfile(preview):
+      return preview
+
+    # check in preview folder
+    content_folder = content_path['path']
+
+    # cut content path from base path
+    base_path = base_path[len(content_folder):] 
+
+    preview_folder = '/Users/Shared/NBPL/Samples/' + content_path['upid'] 
+    preview = preview_folder + base_path + "/.previews/" + filename + ".ogg"
+
+    # check if preview exists
+    if os.path.isfile(preview):
+      return preview
+    
+    print (f"({content_path['alias']}) Unable to locate preview file for : {snd_info['file_name']}")
+    
+    return ""
 
 def filter_func(key, id, item):
     return item[key] == id
@@ -44,33 +74,52 @@ with open('misc/k_mode.json') as path_file:
 with open('misc/k_category.json') as path_file:
   categories = json.load(path_file)
 
+
+def get_all_sound_infos ():
+   
+  result = []
+  for content_path in content_paths:
+    result += get_sound_infos_by_content_path(content_path)
+
+  return result
+   
+
 def get_sound_infos (folder):
-   
-    result = []
-   
+
     ## resolve content path
     path_list = [x for x in content_paths if x['path'] == folder]
     if len(path_list) != 1 :
-       return result
-
+       return []
+   
     content_path = path_list[0]
-    content_path_id = content_path['id']
-    print ("Importing content folder: " + folder + " (ID=" + str(content_path_id) +")")
+    return get_sound_infos_by_content_path(content_path)
 
-    preset_path = content_path['path'] + "/Presets"
-    preview_path = preset_path + "/.previews"
+def get_sound_infos_by_content_path (content_path):
+   
+    result = []
+   
+    content_path_id = content_path['id']
+    #print ("Importing content folder: " + content_path['path'] + " (ID=" + str(content_path_id) +")")
 
     ## collect sound_infos
     list_of_snd_info = list(filter(partial(filter_func,'content_path_id', content_path_id), sound_info))
 
     for snd_info in list_of_snd_info:
 
+        # skip FX presets 
+        if snd_info['device_type_flags'] != 1:
+           continue
+
+        # preview 
+        preview = get_preview(snd_info, content_path)
+
+        # check if preview file exists
+        if preview == "":
+          continue
+
         # bank chain
         bank_chain_id = snd_info['bank_chain_id']
         bank = list(filter(partial(filter_func, 'id', bank_chain_id), bank_chains))[0]
-
-        # preview 
-        preview = get_preview(snd_info)
 
         # modes
         modes_list = []
@@ -89,10 +138,11 @@ def get_sound_infos (folder):
             cat_list.append({'category': cat['category'],'subcategory': cat['subcategory'] })
 
         item = { 
-            'uuid'      : snd_info['uuid'],
+            'id'        : snd_info['favorite_id'],
             'name'      : snd_info['name'],
             'file_ext'  : snd_info['file_ext'],    
             'file_name' : snd_info['file_name'], 
+            'basename'  : snd_info['name'] + "." +snd_info['file_ext'],
             'preview'   : preview,
             'upid'      : content_path['upid'],
             'vendor'    : snd_info['vendor'],
@@ -105,10 +155,10 @@ def get_sound_infos (folder):
         }
         result.append(item)
         
-        if len(result) >= 5:
-          break
+        #if len(result) >= 5:
+        #  break
 
-    print (str(len(result)) + " presets imported.")
+    print (f"{str(len(result))} presets scanned from {content_path['alias']}")
     return result
 
 
