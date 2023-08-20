@@ -1,0 +1,262 @@
+[
+    {
+        "id": 1,
+        "name": "Processed"
+    },
+    {
+        "id": 2,
+        "name": "Synthetic"
+    },
+    {
+        "id": 3,
+        "name": "Evolving"
+    },
+    {
+        "id": 4,
+        "name": "Long Release"
+    },
+    {
+        "id": 5,
+        "name": "Glide / Pitch Mod"
+    },
+    {
+        "id": 6,
+        "name": "Tempo-synced"
+    },
+    {
+        "id": 7,
+        "name": "Slow Attack"
+    },
+    {
+        "id": 8,
+        "name": "Sequenced / Looped"
+    },
+    {
+        "id": 9,
+        "name": "Dry"
+    },
+    {
+        "id": 10,
+        "name": "Chord"
+    },
+    {
+        "id": 11,
+        "name": "Sample-based"
+    },
+    {
+        "id": 12,
+        "name": "Percussive"
+    },
+    {
+        "id": 13,
+        "name": "Monophonic"
+    },
+    {
+        "id": 14,
+        "name": "Airy"
+    },
+    {
+        "id": 15,
+        "name": "Layered"
+    },
+    {
+        "id": 16,
+        "name": "Dirty"
+    },
+    {
+        "id": 17,
+        "name": "Bright"
+    },
+    {
+        "id": 18,
+        "name": "Digital"
+    },
+    {
+        "id": 19,
+        "name": "Analog"
+    },
+    {
+        "id": 20,
+        "name": "Distorted"
+    },
+    {
+        "id": 21,
+        "name": "Huge"
+    },
+    {
+        "id": 22,
+        "name": "Sub"
+    },
+    {
+        "id": 23,
+        "name": "Deep"
+    },
+    {
+        "id": 24,
+        "name": "Vocoded"
+    },
+    {
+        "id": 25,
+        "name": "Stabs & Hits"
+    },
+    {
+        "id": 26,
+        "name": "Arpeggiated"
+    },
+    {
+        "id": 27,
+        "name": "Clean"
+    },
+    {
+        "id": 28,
+        "name": "Additive"
+    },
+    {
+        "id": 29,
+        "name": "FM"
+    },
+    {
+        "id": 30,
+        "name": "Granular"
+    },
+    {
+        "id": 31,
+        "name": "Physical Model"
+    },
+    {
+        "id": 32,
+        "name": "Drums"
+    },
+    {
+        "id": 33,
+        "name": "Guitar"
+    },
+    {
+        "id": 34,
+        "name": "Bass"
+    },
+    {
+        "id": 35,
+        "name": "Synth"
+    },
+    {
+        "id": 36,
+        "name": "Special FX"
+    },
+    {
+        "id": 37,
+        "name": "Vocal"
+    },
+    {
+        "id": 38,
+        "name": "Keys"
+    },
+    {
+        "id": 39,
+        "name": "Mixbus"
+    },
+    {
+        "id": 40,
+        "name": "Pads"
+    },
+    {
+        "id": 41,
+        "name": "Acoustic"
+    },
+    {
+        "id": 42,
+        "name": "Sequence/Loop"
+    },
+    {
+        "id": 43,
+        "name": "Piano"
+    },
+    {
+        "id": 44,
+        "name": "Strings"
+    },
+    {
+        "id": 45,
+        "name": "Riser"
+    },
+    {
+        "id": 46,
+        "name": "Dark"
+    },
+    {
+        "id": 47,
+        "name": "Filtered"
+    },
+    {
+        "id": 48,
+        "name": "Wet"
+    },
+    {
+        "id": 49,
+        "name": "Metallic"
+    },
+    {
+        "id": 50,
+        "name": "Melodic"
+    },
+    {
+        "id": 51,
+        "name": "Lead"
+    },
+    {
+        "id": 52,
+        "name": "Electric"
+    },
+    {
+        "id": 53,
+        "name": "Lo-Fi"
+    },
+    {
+        "id": 54,
+        "name": "Human"
+    },
+    {
+        "id": 55,
+        "name": "Surround"
+    },
+    {
+        "id": 56,
+        "name": "Plucks"
+    },
+    {
+        "id": 57,
+        "name": "Lick"
+    },
+    {
+        "id": 58,
+        "name": "Mastering"
+    },
+    {
+        "id": 59,
+        "name": "Hip Hop / Trap"
+    },
+    {
+        "id": 60,
+        "name": "Vinyl"
+    },
+    {
+        "id": 61,
+        "name": "Long/Evolving"
+    },
+    {
+        "id": 62,
+        "name": "Glide/Pitch Mod"
+    },
+    {
+        "id": 63,
+        "name": "Tuned/MIDI"
+    },
+    {
+        "id": 64,
+        "name": "Mono Aftertouch"
+    },
+    {
+        "id": 65,
+        "name": "Poly Aftertouch"
+    }
+]
