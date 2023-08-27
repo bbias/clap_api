@@ -1,24 +1,60 @@
-from milvus_db import clap_db, snd_info_db, search_milvus_db, insert_items 
+from milvus_db import clap_db, search_milvus_db, insert_items 
 import numpy as np
-import json
+import json, os
 
 fmt = "\n=== {:30} ===\n"
 latency_fmt = "latency = {:.4f}s"
 search_latency_fmt = "search latency = {:.4f}s"
 DIM = 512
 
+OUTPUT_PATH = 'data_5K'
+
 def upload_embeddings():
     
-
+    print(fmt.format("Load Presets"))
 
     presets = []
-    with open('presets.json') as f:
+    with open(os.path.join(OUTPUT_PATH,'presets.json')) as f:
         presets = json.load(f)
+    print("Num presets loaded: " + str(len(presets)))
 
+    # load embeddings
     print(fmt.format("Load Embeddings"))
+    embeddings_file = np.load(os.path.join(OUTPUT_PATH,'embeddings.npz'))
+    ids = embeddings_file['ids']
+    embeddings = embeddings_file['embeddings']
 
-    embeddings_file = np.load('ALL_PRESETS_WITH_UUID_31926.npz')
+    # flatten embeddings
+    embeddings = [sub[0] for sub in embeddings]
 
-    print(fmt.format("Load Embeddings"))
+    print("Num embeddings loaded: " + str(len(embeddings)))
 
 
+    print(fmt.format("Create Entries for Milvus"))
+    
+    # entities = []
+    #for preset, id, emb in zip(presets, embeddings_file['ids'], embeddings_file['embeddings']):
+
+    upids       = [sub['upid'] for sub in presets]
+    alias       = [sub['alias'] for sub in presets]
+    names       = [sub['name'] for sub in presets]
+    previews    = [sub['preview'] for sub in presets]
+
+    chunks_size = 8192
+    num_items   = len(upids)
+    idx = 0
+
+    while num_items:
+
+        n = min(chunks_size, num_items)
+
+        entities    = [ids[idx:idx+n], upids[idx:idx+n], alias[idx:idx+n], names[idx:idx+n], previews[idx:idx+n], embeddings[idx:idx+n]]
+        insert_result = clap_db.insert(entities)
+        print(insert_result)
+
+        idx += n
+        num_items -= n
+
+upload_embeddings()
+
+ 

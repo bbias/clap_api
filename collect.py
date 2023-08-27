@@ -1,5 +1,5 @@
 
-import json, os
+import json, os, uuid
 from functools import partial
 
 
@@ -74,12 +74,13 @@ with open('misc/k_mode.json') as path_file:
 with open('misc/k_category.json') as path_file:
   categories = json.load(path_file)
 
-
 def get_all_sound_infos ():
    
-  result = []
+  result = {}
   for content_path in content_paths:
-    result += get_sound_infos_by_content_path(content_path)
+    presets = get_sound_infos_by_content_path(content_path)
+    if len(presets) > 0:
+      result[content_path['upid']] = get_sound_infos_by_content_path(content_path)
 
   return result
    
@@ -138,13 +139,14 @@ def get_sound_infos_by_content_path (content_path):
             cat_list.append({'category': cat['category'],'subcategory': cat['subcategory'] })
 
         item = { 
-            'id'        : snd_info['favorite_id'],
+            'id'        : str(uuid.uuid4()),
             'name'      : snd_info['name'],
             'file_ext'  : snd_info['file_ext'],    
             'file_name' : snd_info['file_name'], 
             'basename'  : snd_info['name'] + "." +snd_info['file_ext'],
             'preview'   : preview,
             'upid'      : content_path['upid'],
+            'alias'     : content_path['alias'],
             'vendor'    : snd_info['vendor'],
             'author'    : snd_info['author'],
             'bank1'     : bank['entry1'],      
@@ -155,7 +157,7 @@ def get_sound_infos_by_content_path (content_path):
         }
         result.append(item)
         
-        #if len(result) >= 5:
+        #if len(result) >= 100:
         #  break
 
     print (f"{str(len(result))} presets scanned from {content_path['alias']}")
