@@ -1,0 +1,6 @@
+# ignore all logs
+*.log
+
+*.ogg
+data_5k/*
+*.pt
