@@ -8,11 +8,11 @@ import urllib.parse
 
 import werkzeug
 from werkzeug.utils import secure_filename
-from milvus_db import clap_db, snd_info_db, search_milvus_db, insert_items 
+from milvus_db import clap_db, search_milvus_db, insert_items 
 
 ###############################################################################
 
-UPLOAD_FOLDER = 'data/previews'
+UPLOAD_FOLDER = 'data_5k'
 ALLOWED_EXTENSIONS = {'ogg'}
 latency_fmt = "latency = {:.4f}s"
 
@@ -50,12 +50,12 @@ sound_put_args.add_argument("upid",type=str,help="UPID of the sound", required=F
 
 ################################
 
-@app.route('/search_id/<int:sound_id>')
-def search_sound(sound_id):
+@app.route('/similarity_search_uuid/<sound_uuid>')
+def search_sound(sound_uuid):
 
-    sound = clap_db.query(expr=f"pk in [{sound_id}]", limit=1, output_fields=["embeddings"])
+    sound = clap_db.query(expr=f"uuid in [\"{sound_uuid}\"]", limit=1, output_fields=['embeddings'])
     if not sound:
-        abort(404, message="Could not find sound with id=" + str(sound_id)  )
+        abort(404, message="Could not find sound with uuid=" + str(sound_uuid)  )
 
     # get embeddings
     vectors_to_search = [sound[0]['embeddings']]
@@ -67,7 +67,7 @@ def search_sound(sound_id):
 
 ################################
 
-@app.route('/search_text/<text>')
+@app.route('/similarity_search_text/<text>')
 def search_text(text):
 
     print ("search_sound(text) started")
@@ -98,24 +98,19 @@ def search_text(text):
 def sound_info():
 
     if request.method == 'GET':
-        snd_info_db.load()
 
-        result = snd_info_db.query(expr="uuid != \"\" ", output_fields=["uuid","upid","basename"])
+        clap_db.load()
+        result = clap_db.query(expr="uuid != \"\" ", 
+                               output_fields=["uuid","upid","product","name","preview","vendor","bank1","bank2"])
+        
         return jsonify(result)
 
-    if request.method == 'POST':
-        data = request.json
-
-        entities = [
-            [data['uuid']],  
-            [data['upid']],  
-            [data['basename']], 
-            [np.random.randn(2)],    # field embeddings, supports numpy.ndarray and list
-        ]
-
-        insert_result = snd_info_db.insert(entities)
-
     return ''
+
+@app.route('/previews/<folder>/<filename>')
+def get_preview(folder, filename):
+    return send_from_directory(directory=app.config['UPLOAD_FOLDER'] + "/" + folder, filename=filename)
+
 
 ###############################################################################
 
@@ -123,6 +118,7 @@ def sound_info():
 app.add_url_rule(
     "/uploads/<name>", endpoint="download_file", build_only=True
 )
+
 
 def allowed_file(filename):
     return '.' in filename and \

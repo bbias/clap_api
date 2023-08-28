@@ -24,7 +24,7 @@ has = utility.has_collection("clap_db")
 print(f"Does collection clap_db exist in Milvus: {has}")
 
 #utility.drop_collection("snd_info_db")
-utility.drop_collection("clap_db")
+#utility.drop_collection("clap_db")
 
 #################################################################################
 # 2. create collection
@@ -42,7 +42,11 @@ fields = [
     FieldSchema(name="upid", dtype=DataType.VARCHAR, max_length=36),
     FieldSchema(name="product", dtype=DataType.VARCHAR, max_length=36),
     FieldSchema(name="name", dtype=DataType.VARCHAR, max_length=70),
-    FieldSchema(name="preview", dtype=DataType.VARCHAR, max_length=200),
+    FieldSchema(name="preview", dtype=DataType.VARCHAR, max_length=196),
+    FieldSchema(name="vendor", dtype=DataType.VARCHAR, max_length=96, default_value=""),
+    FieldSchema(name="bank1", dtype=DataType.VARCHAR, max_length=96, default_value=""),
+    FieldSchema(name="bank2", dtype=DataType.VARCHAR, max_length=96, default_value=""),
+    #FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=196),  
     FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=512),
 ]
 
@@ -102,12 +106,12 @@ def search_milvus_db(vectors_to_search, limit=10):
     }
 
     start_time = time.time()
-    search_result = clap_db.search(vectors_to_search, "embeddings", search_params, limit, output_fields=["basename", "uuid"])
+    search_result = clap_db.search(vectors_to_search, "embeddings", search_params, limit, output_fields=["uuid","upid","product","name","preview"])
     end_time = time.time()
 
     for hits in search_result:
         for hit in hits:
-            print(f"hit: {hit}, score {hit.score}: {hit.entity.get('basename')}")
+            print(f"hit: {hit}, score {hit.score}: {hit.entity.get('name')}")
 
     print(search_latency_fmt.format(end_time - start_time))
 
@@ -115,7 +119,12 @@ def search_milvus_db(vectors_to_search, limit=10):
     for hits in search_result:
         items = []
         for hit in hits:
-            items.append ({ 'basename': hit.entity.get('basename'), 'score':hit.score})
+            items.append ({ 'name': hit.entity.get('name'), 
+                            'uuid': hit.entity.get('uuid'), 
+                            'product': hit.entity.get('product'), 
+                            'upid': hit.entity.get('upid'), 
+                            'preview': hit.entity.get('preview'), 
+                            'score':hit.score})
         result.append(items)
 
     return result

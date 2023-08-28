@@ -39,6 +39,16 @@ def upload_embeddings():
     alias       = [sub['alias'] for sub in presets]
     names       = [sub['name'] for sub in presets]
     previews    = [sub['preview'] for sub in presets]
+    vendor      = [sub['vendor'] for sub in presets]
+    bank1       = [sub['bank1'] for sub in presets]
+    bank2       = [sub['bank2'] for sub in presets]
+    #category    = [sub['category'] for sub in presets]
+
+    # remove None values
+    vendor = ['' if v is None else v for v in vendor]
+    bank1 = ['' if v is None else v for v in bank1]
+    bank2 = ['' if v is None else v for v in bank2]
+
 
     chunks_size = 8192
     num_items   = len(upids)
@@ -48,7 +58,17 @@ def upload_embeddings():
 
         n = min(chunks_size, num_items)
 
-        entities    = [ids[idx:idx+n], upids[idx:idx+n], alias[idx:idx+n], names[idx:idx+n], previews[idx:idx+n], embeddings[idx:idx+n]]
+        entities    = [ids[idx:idx+n], 
+                       upids[idx:idx+n], 
+                       alias[idx:idx+n], 
+                       names[idx:idx+n], 
+                       previews[idx:idx+n], 
+                       vendor[idx:idx+n], 
+                       bank1[idx:idx+n], 
+                       bank2[idx:idx+n], 
+                       #category[idx:idx+n], 
+                       embeddings[idx:idx+n]]
+        
         insert_result = clap_db.insert(entities)
         print(insert_result)
 
