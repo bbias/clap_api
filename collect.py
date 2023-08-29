@@ -2,6 +2,8 @@
 import json, os, uuid
 from functools import partial
 
+PREVIEW_FOLDER_PC = 'd:\\Native Instruments\\Previews\\Samples'
+PREVIEW_FOLDER_MAC = '/Users/Shared/NBPL/Samples/'
 
 with open('misc/k_content_path.json') as path_file:
   products = json.load(path_file)
@@ -29,8 +31,8 @@ def get_preview(snd_info, content_path):
     # cut content path from base path
     base_path = base_path[len(content_folder):] 
 
-    preview_folder = '/Users/Shared/NBPL/Samples/' + content_path['upid'] 
-    preview = preview_folder + base_path + "/.previews/" + filename + ".ogg"
+    preview_folder = os.path.join(PREVIEW_FOLDER_PC, content_path['upid']) 
+    preview = os.path.join(preview_folder, base_path, ".previews", filename + ".ogg")
 
     # check if preview exists
     if os.path.isfile(preview):
@@ -79,8 +81,9 @@ def get_all_sound_infos ():
   result = {}
   for content_path in content_paths:
     presets = get_sound_infos_by_content_path(content_path)
+
     if len(presets) > 0:
-      result[content_path['upid']] = get_sound_infos_by_content_path(content_path)
+      result[content_path['upid']] = presets
 
   return result
    
@@ -157,7 +160,7 @@ def get_sound_infos_by_content_path (content_path):
         }
         result.append(item)
         
-        #if len(result) >= 100:
+        #if len(result) >= 2:
         #  break
 
     print (f"{str(len(result))} presets scanned from {content_path['alias']}")
