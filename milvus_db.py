@@ -46,7 +46,10 @@ fields = [
     FieldSchema(name="vendor", dtype=DataType.VARCHAR, max_length=96, default_value=""),
     FieldSchema(name="bank1", dtype=DataType.VARCHAR, max_length=96, default_value=""),
     FieldSchema(name="bank2", dtype=DataType.VARCHAR, max_length=96, default_value=""),
-    #FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=196),  
+    FieldSchema(name="category", dtype=DataType.VARCHAR, max_length=64),
+    FieldSchema(name="subcategory", dtype=DataType.VARCHAR, max_length=64),  
+    FieldSchema(name="mode", dtype=DataType.VARCHAR, max_length=196),  
+  
     FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=512),
 ]
 
@@ -106,7 +109,7 @@ def search_milvus_db(vectors_to_search, limit=10):
     }
 
     start_time = time.time()
-    search_result = clap_db.search(vectors_to_search, "embeddings", search_params, limit, output_fields=["uuid","upid","product","name","preview"])
+    search_result = clap_db.search(vectors_to_search, "embeddings", search_params, limit, output_fields=["uuid","upid","product","name","preview","vendor","bank1","bank2","category","subcategory","mode"])
     end_time = time.time()
 
     for hits in search_result:
@@ -124,7 +127,14 @@ def search_milvus_db(vectors_to_search, limit=10):
                             'product': hit.entity.get('product'), 
                             'upid': hit.entity.get('upid'), 
                             'preview': hit.entity.get('preview'), 
+                            'vendor': hit.entity.get('vendor'), 
+                            'bank1': hit.entity.get('bank1'), 
+                            'bank2': hit.entity.get('bank2'), 
+                            'category': hit.entity.get('category'), 
+                            'subcategory': hit.entity.get('subcategory'), 
+                            'mode': hit.entity.get('mode'), 
                             'score':hit.score})
         result.append(items)
 
     return result
+

@@ -42,13 +42,31 @@ def upload_embeddings():
     vendor      = [sub['vendor'] for sub in presets]
     bank1       = [sub['bank1'] for sub in presets]
     bank2       = [sub['bank2'] for sub in presets]
-    #category    = [sub['category'] for sub in presets]
+    cat         = [sub['category'] for sub in presets]
+    mod         = [sub['mode'] for sub in presets]
+
+    mode = list()
+    category  = list()
+    sub_category  = list()
+    for sub in cat:
+        if len(sub) >0 :
+            sub_category.append(sub[0]['subcategory'])
+            category.append(sub[0]['category'])
+        else:
+            sub_category.append("")
+            category.append("")
+
+    for sub in mod:
+        mode.append(",".join(sub)) 
+    
 
     # remove None values
     vendor = ['' if v is None else v for v in vendor]
     bank1 = ['' if v is None else v for v in bank1]
     bank2 = ['' if v is None else v for v in bank2]
-
+    category = ['' if v is None else v for v in category]
+    sub_category = ['' if v is None else v for v in sub_category]
+    mode = ['' if v is None else v for v in mode]
 
     chunks_size = 8192
     num_items   = len(upids)
@@ -66,7 +84,9 @@ def upload_embeddings():
                        vendor[idx:idx+n], 
                        bank1[idx:idx+n], 
                        bank2[idx:idx+n], 
-                       #category[idx:idx+n], 
+                       category[idx:idx+n], 
+                       sub_category[idx:idx+n], 
+                       mode[idx:idx+n], 
                        embeddings[idx:idx+n]]
         
         insert_result = clap_db.insert(entities)

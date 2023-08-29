@@ -101,7 +101,7 @@ def sound_info():
 
         clap_db.load()
         result = clap_db.query(expr="uuid != \"\" ", 
-                               output_fields=["uuid","upid","product","name","preview","vendor","bank1","bank2"])
+                               output_fields=["uuid","upid","product","name","preview","vendor","bank1","bank2","category","subcategory","mode"])
         
         return jsonify(result)
 
