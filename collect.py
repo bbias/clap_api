@@ -113,6 +113,10 @@ def get_sound_infos_by_content_path (content_path):
         # skip FX presets 
         if snd_info['device_type_flags'] != 1:
            continue
+        
+        # skip hidden presets 
+        if snd_info['hidden_for'] != 0:
+           continue
 
         # preview 
         preview = get_preview(snd_info, content_path)
