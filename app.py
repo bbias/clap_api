@@ -15,7 +15,7 @@ import logging
 
 ###############################################################################
 
-UPLOAD_FOLDER = 'data_5k'
+UPLOAD_FOLDER = 'data'
 ASSET_FOLDER = 'Assets'
 TEMP_FOLDER = 'tmp'
 ALLOWED_EXTENSIONS = {'ogg','wav'}

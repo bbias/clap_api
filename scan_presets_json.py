@@ -10,7 +10,7 @@ import laion_clap
 fmt = "\n=== {:30} ===\n"
 latency_fmt = "latency = {:.4f}s"
 
-OUTPUT_PATH = 'data_5K'
+OUTPUT_PATH = 'data'
 
 #######################################
 # 1. Start
