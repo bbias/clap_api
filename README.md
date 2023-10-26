@@ -19,3 +19,9 @@
 * install milvus.io standalone
 
 
+## Scripts
+
+* app.py -> start the api
+
+
+

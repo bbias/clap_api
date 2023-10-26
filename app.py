@@ -1,21 +1,15 @@
-import os
+import os, sys, time, logging
 import numpy as np
 from flask import Flask, flash, request, redirect, url_for, send_from_directory, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from embeddings import create_embeddings, create_embeddings_from_text
-import time
-import urllib.parse
-
-import werkzeug
 from werkzeug.utils import secure_filename
 from milvus_db import clap_db, search_milvus_db, insert_items 
 from flask import Flask
 from flask_cors import CORS
-import logging
 
 ###############################################################################
 
-UPLOAD_FOLDER = 'data'
 ASSET_FOLDER = 'Assets'
 TEMP_FOLDER = 'tmp'
 ALLOWED_EXTENSIONS = {'ogg','wav'}
@@ -25,9 +19,7 @@ app = Flask(__name__)
 cors = CORS(app)
 
 app.config['CORS_HEADERS'] = 'Content-Type'
-
 app.config['ASSET_FOLDER'] = ASSET_FOLDER
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 10000 * 10000
 
@@ -175,4 +167,9 @@ def allowed_file(filename):
 ###############################################################################
 
 if __name__ == "__main__":
+    if (sys.argv[1]):
+        app.config['DATA_FOLDER'] = sys.argv[1]
+    else:
+        app.config['DATA_FOLDER'] = '/data'
+    print ("DATA_FOLDER: " + app.config['DATA_FOLDER'])
     app.run(debug=True)
