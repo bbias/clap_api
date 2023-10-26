@@ -172,4 +172,4 @@ if __name__ == "__main__":
     else:
         app.config['DATA_FOLDER'] = '/data'
     print ("DATA_FOLDER: " + app.config['DATA_FOLDER'])
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
