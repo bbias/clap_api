@@ -7,20 +7,20 @@ latency_fmt = "latency = {:.4f}s"
 search_latency_fmt = "search latency = {:.4f}s"
 DIM = 512
 
-OUTPUT_PATH = 'data_5K'
+DATA_PATH = '/data'
 
 def upload_embeddings():
     
     print(fmt.format("Load Presets"))
 
     presets = []
-    with open(os.path.join(OUTPUT_PATH,'presets.json')) as f:
+    with open(os.path.join(DATA_PATH,'presets.json')) as f:
         presets = json.load(f)
     print("Num presets loaded: " + str(len(presets)))
 
     # load embeddings
     print(fmt.format("Load Embeddings"))
-    embeddings_file = np.load(os.path.join(OUTPUT_PATH,'embeddings.npz'))
+    embeddings_file = np.load(os.path.join(DATA_PATH,'embeddings.npz'))
     ids = embeddings_file['ids']
     embeddings = embeddings_file['embeddings']
 
