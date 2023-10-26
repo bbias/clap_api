@@ -149,7 +149,7 @@ def sound_info():
 
 @app.route('/previews/<folder>/<filename>')
 def get_preview(folder, filename):
-    return send_from_directory(directory=app.config['UPLOAD_FOLDER'] + "/" + folder, filename=filename)
+    return send_from_directory(directory=app.config['DATA_FOLDER'] + "/" + folder, filename=filename)
 
 ###############################################################################
 
